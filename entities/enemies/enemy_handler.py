@@ -1,5 +1,5 @@
 import pygame
-from .enemy import Enemy
+from config import ANCHO_MUNDO
 
 
 def actualizar_enemigos(grupo_enemigos, grupo_plataformas, jugador):
@@ -19,10 +19,9 @@ def gestionar_colisiones_enemigos(grupo_balas, grupo_enemigos, jugador, grupo_dr
     # 2. Colisiones de enemigos con el jugador (Daño y empuje)
     colisiones_jugador = pygame.sprite.spritecollide(jugador, grupo_enemigos, False)
     for enemigo in colisiones_jugador:
-        if hasattr(jugador, "recibir_daño"):
-            jugador.recibir_daño(enemigo.daño_contacto)
+        if jugador.recibir_daño(enemigo.daño_contacto):
 
             # Aplicar empuje físico al jugador al tocar al enemigo
-            if hasattr(jugador, "rect"):
-                empuje = 12 if enemigo.rect.centerx < jugador.rect.centerx else -12
-                jugador.rect.x += empuje
+            empuje = 12 if enemigo.rect.centerx < jugador.rect.centerx else -12
+            jugador.rect.x += empuje
+            jugador.rect.x = max(0, min(jugador.rect.x, ANCHO_MUNDO - jugador.rect.width))
