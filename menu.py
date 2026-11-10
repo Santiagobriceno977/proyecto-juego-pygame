@@ -1,4 +1,5 @@
 import pygame
+from fuentes import cargar_fuente
 
 
 class Menu:
@@ -15,9 +16,9 @@ class Menu:
         self.opciones = tuple(opciones)
         self.subtitulo = subtitulo
         self.indice_seleccionado = 0
-        self.fuente_titulo = pygame.font.Font(None, 52)
-        self.fuente_opciones = pygame.font.Font(None, 32)
-        self.fuente_ayuda = pygame.font.Font(None, 23)
+        self.fuente_titulo = cargar_fuente(64, retro=True)
+        self.fuente_opciones = cargar_fuente(42, retro=True)
+        self.fuente_ayuda = cargar_fuente(26)
         self.botones = [
             pygame.Rect(ancho // 2 - 160, alto // 2 + indice * 64, 320, 50)
             for indice in range(len(self.opciones))
@@ -73,3 +74,4 @@ class Menu:
             superficie, self.fuente_ayuda, "Flechas / W-S y Enter · También puedes usar el ratón",
             self.alto - 65, (145, 156, 177),
         )
+

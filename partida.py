@@ -10,6 +10,7 @@ from entities.enemies.spawn_manager import SpawnManager
 from levels.nivel_prueba import cargar_nivel_prueba, ZONAS_ENEMIGOS
 from hud import dibujar_hud
 from input_handler import gestionar_eventos_teclado, gestionar_disparo_continuo
+from fuentes import cargar_fuente
 
 
 class Partida:
@@ -30,7 +31,7 @@ class Partida:
         self.grupo_armas.add(Pistol(150, 480), Shotgun(200, 480), Metralleta(100, 480))
         self.spawn_manager = SpawnManager(ZONAS_ENEMIGOS)
         self.instante_pausa = None
-        self.fuente_hud = pygame.font.Font(None, 24)
+        self.fuente_hud = cargar_fuente(28)
         try:
             fondo = pygame.image.load("assets/background.png").convert()
             self.imagen_fondo = pygame.transform.scale(fondo, (ANCHO_PANTALLA, ALTO_PANTALLA))
@@ -101,3 +102,4 @@ class Partida:
         dibujar_hud(ventana, self.fuente_hud, self.jugador)
         ayuda = self.fuente_hud.render("Esc · Pausa", True, (230, 230, 240))
         ventana.blit(ayuda, (ANCHO_PANTALLA - ayuda.get_width() - 20, 20))
+

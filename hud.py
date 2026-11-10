@@ -23,7 +23,7 @@ def dibujar_hud(ventana, fuente_hud, jugador):
     ventana.blit(texto_vida, (pos_x_barras, pos_y_barras + alto_barra + 3))
 
     # Barra de Blindaje
-    pos_y_barras += 40
+    pos_y_barras += alto_barra + 3 + fuente_hud.get_height() + 8
     proporcion_blindaje = max(0, jugador.blindaje / jugador.blindaje_maximo)
     pygame.draw.rect(ventana, (100, 100, 100), (pos_x_barras, pos_y_barras, ancho_barra, 10))
     pygame.draw.rect(
