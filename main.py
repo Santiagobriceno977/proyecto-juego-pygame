@@ -10,7 +10,9 @@ from entities.enemies.enemy_handler import actualizar_enemigos, gestionar_colisi
 from entities.enemies.wave_manager import WaveManager
 from hud import dibujar_hud
 from input_handler import gestionar_eventos_teclado, gestionar_disparo_continuo
-from menu import Menu  # Importamos nuestro nuevo módulo de menú
+from menu import Menu
+# Importamos el nivel de prueba desde la carpeta levels
+from levels.nivel_prueba import cargar_nivel_prueba
 
 # 1. Inicialización
 pygame.init()
@@ -49,6 +51,10 @@ grupo_armas = pygame.sprite.Group()
 grupo_balas = pygame.sprite.Group()
 grupo_drops = pygame.sprite.Group()
 grupo_enemigos = pygame.sprite.Group()
+grupo_obstaculos = pygame.sprite.Group()
+
+# Cargamos el nivel de prueba (plataformas, cajas y escombros)
+cargar_nivel_prueba(grupo_plataformas, grupo_obstaculos)
 
 wave_manager = WaveManager()
 jugador = Player(50, 480, ANCHO_PANTALLA, ALTO_PANTALLA)
@@ -70,7 +76,6 @@ while True:
             sys.exit()
 
         if estado_juego == "MENU":
-            # Si estamos en el menú, delegamos los eventos al objeto Menu
             accion = menu_principal.actualizar(evento)
             if accion == "JUGAR":
                 estado_juego = "JUGANDO"
@@ -79,11 +84,9 @@ while True:
                 sys.exit()
 
         elif estado_juego == "JUGANDO":
-            # Delegamos los eventos de teclado al jugador y armas
             gestionar_eventos_teclado(evento, jugador, grupo_armas)
 
     if estado_juego == "MENU":
-        # Dibujar las opciones del menú principal
         menu_principal.dibujar(ventana)
 
     elif estado_juego == "JUGANDO":
@@ -95,7 +98,7 @@ while True:
             jugador.arma_equipada.update()
 
         grupo_balas.update()
-        grupo_armas.update()   # las armas resuelven su recarga por sí mismas
+        grupo_armas.update()
         grupo_balas.update()
 
         actualizar_enemigos(grupo_enemigos, grupo_plataformas, jugador)
@@ -116,8 +119,13 @@ while True:
         # === DIBUJAR JUEGO CON CÁMARA ===
         ventana.blit(imagen_fondo, (0, 0))
 
+        # 1. Dibujar plataformas flotantes (¡Aquí estaba el detalle faltante!)
         for plataforma in grupo_plataformas:
             ventana.blit(plataforma.image, (plataforma.rect.x - camara_x, plataforma.rect.y))
+
+        # 2. Dibujar obstáculos (cajas y escombros)
+        for obstaculo in grupo_obstaculos:
+            ventana.blit(obstaculo.image, (obstaculo.rect.x - camara_x, obstaculo.rect.y))
 
         for arma in grupo_armas:
             ventana.blit(arma.image, (arma.rect.x - camara_x, arma.rect.y))

@@ -1,36 +1,28 @@
 import pygame
+from .enemy import Enemy
 
 
-def actualizar_enemigos(grupo_enemigos, plataformas, jugador):
-    """Actualiza el movimiento, la IA y las físicas de todos los enemigos en lote."""
+def actualizar_enemigos(grupo_enemigos, grupo_plataformas, jugador):
     for enemigo in grupo_enemigos:
-        enemigo.update(plataformas, jugador)
+        enemigo.update(grupo_plataformas, jugador)
 
 
 def gestionar_colisiones_enemigos(grupo_balas, grupo_enemigos, jugador, grupo_drops):
-    """Gestiona las colisiones de las balas con los enemigos y de los enemigos con el jugador."""
-
-    # 1. Colisión entre Balas y Enemigos
-    # groupcollide(kill1=True, kill2=False): la bala se consume, el enemigo se actualiza.
-    colisiones_balas = pygame.sprite.groupcollide(
-        grupo_balas, grupo_enemigos, True, False
-    )
+    # 1. Colisiones de balas con enemigos
+    colisiones_balas = pygame.sprite.groupcollide(grupo_balas, grupo_enemigos, True, False)
 
     for bala, enemigos_impactados in colisiones_balas.items():
-        daño = getattr(bala, "daño", 25)  # la bala lleva su propio daño
         for enemigo in enemigos_impactados:
-            enemigo.recibir_daño(daño, grupo_drops)
+            daño_bala = getattr(bala, "daño", 50)
+            enemigo.recibir_daño(daño_bala, grupo_drops, bala_x=bala.rect.centerx)
 
-    # 2. Colisión entre el Jugador y los Enemigos
-    enemigos_tocados = pygame.sprite.spritecollide(jugador, grupo_enemigos, False)
+    # 2. Colisiones de enemigos con el jugador (Daño y empuje)
+    colisiones_jugador = pygame.sprite.spritecollide(jugador, grupo_enemigos, False)
+    for enemigo in colisiones_jugador:
+        if hasattr(jugador, "recibir_daño"):
+            jugador.recibir_daño(enemigo.daño_contacto)
 
-    if enemigos_tocados:
-        for enemigo in enemigos_tocados:
-            if jugador.blindaje > 0:
-                jugador.blindaje -= 1
-                if jugador.blindaje < 0:
-                    jugador.blindaje = 0
-            else:
-                jugador.vida -= 1
-                if jugador.vida < 0:
-                    jugador.vida = 0
+            # Aplicar empuje físico al jugador al tocar al enemigo
+            if hasattr(jugador, "rect"):
+                empuje = 12 if enemigo.rect.centerx < jugador.rect.centerx else -12
+                jugador.rect.x += empuje
