@@ -18,6 +18,8 @@ class Player(pygame.sprite.Sprite):
     self.vida = 100
     self.blindaje_maximo = 50
     self.blindaje = 50
+    self.tiempo_invulnerabilidad = 750  # Milisegundos entre impactos recibidos
+    self.ultimo_daño = -self.tiempo_invulnerabilidad
 
     # Dimensiones estándar del jugador
     self.ancho = 32
@@ -49,6 +51,19 @@ class Player(pygame.sprite.Sprite):
 
     # === ATRIBUTOS PARA EL SISTEMA DE ARMAS ===
     self.mirando_derecha = True  # Dirección inicial del jugador
+
+  def recibir_daño(self, cantidad):
+    """Absorbe el golpe con blindaje y devuelve si se aceptó el impacto."""
+    tiempo = pygame.time.get_ticks()
+    if (cantidad <= 0 or self.vida <= 0
+        or tiempo - self.ultimo_daño < self.tiempo_invulnerabilidad):
+      return False
+
+    daño_absorbido = min(self.blindaje, cantidad)
+    self.blindaje -= daño_absorbido
+    self.vida = max(0, self.vida - (cantidad - daño_absorbido))
+    self.ultimo_daño = tiempo
+    return True
 
   def update(self, plataformas):
     teclas = pygame.key.get_pressed()
