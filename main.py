@@ -7,12 +7,12 @@ from entities.weapons.pistol import Pistol
 from entities.weapons.shotgun import Shotgun
 from entities.weapons.metralleta import Metralleta
 from entities.enemies.enemy_handler import actualizar_enemigos, gestionar_colisiones_enemigos
-from entities.enemies.wave_manager import WaveManager
+from entities.enemies.spawn_manager import SpawnManager
 from hud import dibujar_hud
 from input_handler import gestionar_eventos_teclado, gestionar_disparo_continuo
 from menu import Menu
 # Importamos el nivel de prueba desde la carpeta levels
-from levels.nivel_prueba import cargar_nivel_prueba
+from levels.nivel_prueba import cargar_nivel_prueba, ZONAS_ENEMIGOS
 
 # 1. Inicialización
 pygame.init()
@@ -56,7 +56,7 @@ grupo_obstaculos = pygame.sprite.Group()
 # Cargamos el nivel de prueba (plataformas, cajas y escombros)
 cargar_nivel_prueba(grupo_plataformas, grupo_obstaculos)
 
-wave_manager = WaveManager()
+spawn_manager = SpawnManager(ZONAS_ENEMIGOS)
 jugador = Player(50, 480, ANCHO_PANTALLA, ALTO_PANTALLA)
 suelo = Platform(0, 536, ANCHO_MUNDO, 64, ruta_imagen="assets/items/suelo_tile.png")
 
@@ -101,9 +101,9 @@ while True:
         grupo_armas.update()
         grupo_balas.update()
 
+        spawn_manager.actualizar(jugador, grupo_enemigos)
         actualizar_enemigos(grupo_enemigos, grupo_plataformas, jugador)
         gestionar_colisiones_enemigos(grupo_balas, grupo_enemigos, jugador, grupo_drops)
-        wave_manager.actualizar(grupo_enemigos, grupo_drops, grupo_plataformas, ANCHO_MUNDO)
 
         drops_recogidos = pygame.sprite.spritecollide(jugador, grupo_drops, True)
         for drop in drops_recogidos:
