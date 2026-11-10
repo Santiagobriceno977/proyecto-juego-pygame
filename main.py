@@ -33,28 +33,41 @@ class Juego:
                 "Exit vuelve a la selección de niveles.",
             ),
         }
+        self._musica_menu_cargada = False
+        self._musica_menu_activa = False
         if pygame.mixer.get_init():
             try:
                 pygame.mixer.music.load("assets/sounds/background_music.ogg")
                 pygame.mixer.music.set_volume(0.5)
-                pygame.mixer.music.play(-1)
+                self._musica_menu_cargada = True
             except (pygame.error, FileNotFoundError) as error:
                 print(f"No se pudo cargar la música de fondo: {error}")
+        self._actualizar_musica_menu()
+
+    def _actualizar_musica_menu(self):
+        if not pygame.mixer.get_init() or not self._musica_menu_cargada:
+            return
+        if self.estado in ("MENU", "NIVELES"):
+            if not self._musica_menu_activa:
+                pygame.mixer.music.play(-1)
+                self._musica_menu_activa = True
+        elif self._musica_menu_activa:
+            pygame.mixer.music.stop()
+            self._musica_menu_activa = False
 
     def _silenciar_partida(self):
         if pygame.mixer.get_init():
             pygame.mixer.pause()
-            pygame.mixer.music.pause()
 
     def _restaurar_audio(self, descartar=False):
         if pygame.mixer.get_init():
             if descartar:
                 pygame.mixer.stop()
             pygame.mixer.unpause()
-            pygame.mixer.music.unpause()
 
     def cambiar_estado(self, estado):
         self.estado = estado
+        self._actualizar_musica_menu()
         if estado in self.menus:
             self.menus[estado].reiniciar_seleccion()
 
@@ -151,3 +164,4 @@ class Juego:
 
 if __name__ == "__main__":
     Juego().ejecutar()
+

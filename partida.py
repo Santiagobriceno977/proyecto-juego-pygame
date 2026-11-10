@@ -8,7 +8,7 @@ from entities.weapons.metralleta import Metralleta
 from entities.enemies.enemy_handler import actualizar_enemigos, gestionar_colisiones_enemigos
 from entities.enemies.spawn_manager import SpawnManager
 from levels.nivel_prueba import cargar_nivel_prueba, ZONAS_ENEMIGOS
-from hud import dibujar_hud
+from hud import HUD
 from input_handler import gestionar_eventos_teclado, gestionar_disparo_continuo
 from fuentes import cargar_fuente
 
@@ -32,6 +32,7 @@ class Partida:
         self.spawn_manager = SpawnManager(ZONAS_ENEMIGOS)
         self.instante_pausa = None
         self.fuente_hud = cargar_fuente(28)
+        self.hud = HUD()
         try:
             fondo = pygame.image.load("assets/background.png").convert()
             self.imagen_fondo = pygame.transform.scale(fondo, (ANCHO_PANTALLA, ALTO_PANTALLA))
@@ -99,7 +100,8 @@ class Partida:
                 texto = self.fuente_hud.render("[E]", True, (255, 255, 0))
                 ventana.blit(texto, (arma.rect.x - camara_x - 10, arma.rect.y - 25))
         ventana.blit(self.jugador.image, (self.jugador.rect.x - camara_x, self.jugador.rect.y))
-        dibujar_hud(ventana, self.fuente_hud, self.jugador)
+        self.hud.dibujar(ventana, self.jugador)
         ayuda = self.fuente_hud.render("Esc · Pausa", True, (230, 230, 240))
         ventana.blit(ayuda, (ANCHO_PANTALLA - ayuda.get_width() - 20, 20))
+
 
