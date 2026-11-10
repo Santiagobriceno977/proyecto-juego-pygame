@@ -38,8 +38,8 @@ class BaseWeapon(pygame.sprite.Sprite):
         self.direccion = 1
 
         self._cargar_imagen(stats.icono, stats.color_bala)
-        self.sonido_disparo = self._cargar_sonido(stats.sonido_disparo)
-        self.sonido_recarga = self._cargar_sonido(stats.sonido_recarga)
+        self.sonido_disparo = self._cargar_sonido(stats.sonido_disparo, volumen=0.25)  # 25% de volumen para disparos
+        self.sonido_recarga = self._cargar_sonido(stats.sonido_recarga, volumen=0.3)  # 30% de volumen para recargas
 
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -60,11 +60,13 @@ class BaseWeapon(pygame.sprite.Sprite):
             self.image = pygame.Surface((32, 16), pygame.SRCALPHA)
             self.image.fill(color_fallback)
 
-    def _cargar_sonido(self, ruta):
+    def _cargar_sonido(self, ruta, volumen=0.3):
+        """Carga un sonido y ajusta su volumen (de 0.0 a 1.0)."""
         if not ruta:
             return None
         try:
             sonido = pygame.mixer.Sound(ruta)
+            sonido.set_volume(volumen)  # <--- AQUÍ REGULAMOS EL VOLUMEN
             return sonido
         except Exception:
             return None
