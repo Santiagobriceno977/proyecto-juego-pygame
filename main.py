@@ -17,6 +17,7 @@ class Juego:
         self.partida = None
         self.menus = {
             "MENU": Menu(ANCHO_PANTALLA, ALTO_PANTALLA),
+            "CONTROLES": Menu(ANCHO_PANTALLA, ALTO_PANTALLA, "CONTROLES", (("Volver", "MENU"),), controles=True),
             "NIVELES": Menu(
                 ANCHO_PANTALLA, ALTO_PANTALLA, "SELECCIÓN DE NIVELES",
                 (("Nivel de prueba", "INICIAR"), ("Volver", "MENU")),
@@ -108,7 +109,7 @@ class Juego:
                 self.reanudar()
             elif self.estado == "GAME_OVER":
                 self.volver_al_selector()
-            elif self.estado == "NIVELES":
+            elif self.estado in ("NIVELES", "CONTROLES"):
                 self.cambiar_estado("MENU")
             return
 
@@ -119,6 +120,8 @@ class Juego:
         accion = self.menus[self.estado].actualizar(evento)
         if accion == "JUGAR":
             self.cambiar_estado("NIVELES")
+        elif accion == "CONTROLES":
+            self.cambiar_estado("CONTROLES")
         elif accion == "INICIAR":
             self.iniciar_partida()
         elif accion == "REANUDAR":
