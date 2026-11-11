@@ -1,5 +1,19 @@
 from entities.game_platform import Platform
 from entities.elementos_nivel import Caja, Escombro
+from entities.enemies.spawn_manager import ZonaEnemigos
+
+
+# Coordenadas del mundo, independientes del desplazamiento de la cámara.
+# Cada zona se activa una vez al alcanzar activar_en_x con el centro del jugador.
+# Las posiciones indican la esquina superior izquierda de cada enemigo.
+# En el suelo: y=488 + alto del enemigo (48) = superficie del suelo (536).
+ZONAS_ENEMIGOS = (
+    ZonaEnemigos(300, ((650, 488), (900, 488))),
+    ZonaEnemigos(1000, ((1320, 488), (1500, 488))),
+    ZonaEnemigos(1800, ((2100, 488), (2300, 488))),
+    ZonaEnemigos(2500, ((2800, 488), (3000, 488))),
+)
+
 
 def cargar_nivel_prueba(grupo_plataformas, grupo_obstaculos):
     """

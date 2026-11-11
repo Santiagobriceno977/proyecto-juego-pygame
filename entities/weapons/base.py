@@ -38,7 +38,7 @@ class BaseWeapon(pygame.sprite.Sprite):
         self.direccion = 1
 
         self._cargar_imagen(stats.icono, stats.color_bala)
-        self.sonido_disparo = self._cargar_sonido(stats.sonido_disparo, volumen=0.25)  # 25% de volumen para disparos
+        self.sonido_disparo = self._cargar_sonido(stats.sonido_disparo, volumen=stats.volumen_disparo)
         self.sonido_recarga = self._cargar_sonido(stats.sonido_recarga, volumen=0.3)  # 30% de volumen para recargas
 
         self.rect = self.image.get_rect()

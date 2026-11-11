@@ -36,6 +36,7 @@ class WeaponStats:
     icono: str
     sonido_disparo: str | None = None
     sonido_recarga: str | None = None
+    volumen_disparo: float = 0.25
 
 
 PISTOL_STATS = WeaponStats(
@@ -67,6 +68,7 @@ SHOTGUN_STATS = WeaponStats(
     icono="assets/items/shotgun_icon.png",
     sonido_disparo="assets/sounds/shotgun_shot.wav",
     sonido_recarga="assets/sounds/shotgun_reload.wav",
+    volumen_disparo=0.12,
 )
 
 METRALLETA_STATS = WeaponStats(
