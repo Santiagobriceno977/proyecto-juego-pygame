@@ -1,109 +1,72 @@
+from pathlib import Path
 import pygame
 from fuentes import cargar_fuente
 
 
-FONDO = (10, 17, 24, 235)
-BORDE = (48, 77, 88)
-TEXTO = (225, 238, 240)
-APAGADO = (136, 159, 168)
-CIAN = (85, 210, 225)
-VERDE = (110, 225, 173)
-ROJO = (255, 105, 95)
-AMBAR = (245, 190, 90)
+AMBAR = (255, 199, 35)
 
 
 class HUD:
-    """Interfaz de la terminal de Hope: solo muestra el estado real de la partida."""
+    """Panel superior de Hope, con los valores actuales del jugador."""
 
     def __init__(self):
-        self.fuente = cargar_fuente(22)
-        self.pequena = cargar_fuente(19)
-        self.retro = cargar_fuente(28, retro=True)
-        self.numero = cargar_fuente(44, retro=True)
+        ruta = Path(__file__).resolve().parent / "assets" / "ui" / "hud_frame.png"
+        self.marco = pygame.transform.scale(
+            pygame.image.load(str(ruta)).convert_alpha(), (768, 72))
+        self.fuente = cargar_fuente(34, retro=True)
+        self.fuente_arma = cargar_fuente(28, retro=True)
+        self.fuente_estado = cargar_fuente(18, retro=True)
+        self._iconos = {}
 
-    def _texto(self, superficie, texto, posicion, color=TEXTO, fuente=None):
-        imagen = (fuente or self.fuente).render(texto, True, color)
-        superficie.blit(imagen, posicion)
-        return imagen.get_width()
+    @staticmethod
+    def _porcentaje(valor, maximo):
+        return round(max(0, min(1, valor / maximo)) * 100) if maximo > 0 else 0
 
-    def _panel(self, superficie, rect, acento=CIAN):
-        panel = pygame.Surface(rect.size, pygame.SRCALPHA)
-        panel.fill(FONDO)
-        superficie.blit(panel, rect)
-        pygame.draw.rect(superficie, BORDE, rect, width=1)
-        pygame.draw.line(superficie, acento, rect.topleft, (rect.left + 34, rect.top), 3)
-        pygame.draw.line(superficie, acento, (rect.right - 34, rect.bottom - 1),
-                         (rect.right - 1, rect.bottom - 1), 2)
+    def _texto(self, panel, texto, fuente, rect):
+        imagen = fuente.render(texto, False, AMBAR)
+        if imagen.get_width() > rect.width:
+            escala = rect.width / imagen.get_width()
+            imagen = pygame.transform.scale(
+                imagen, (rect.width, max(1, round(imagen.get_height() * escala))))
+        panel.blit(imagen, imagen.get_rect(center=rect.center))
 
-    def _medidor(self, superficie, etiqueta, valor, maximo, x, y, color):
-        valor_visible = max(0, min(int(valor), int(maximo)))
-        proporcion = valor_visible / maximo if maximo > 0 else 0
-        self._texto(superficie, etiqueta, (x, y), APAGADO, self.pequena)
-        numero = self.fuente.render(f"{valor_visible:03d} / {int(maximo):03d}", True, color)
-        superficie.blit(numero, (x + 270 - numero.get_width(), y - 2))
-        for indice in range(20):
-            rect = pygame.Rect(x + indice * 13.5, y + 28, 10, 7)
-            pygame.draw.rect(superficie, (30, 47, 55), rect)
-            relleno = min(1, max(0, proporcion * 20 - indice))
-            if relleno:
-                pygame.draw.rect(superficie, color,
-                                 (rect.x, rect.y, max(1, round(rect.width * relleno)), rect.height))
+    def _icono(self, original):
+        if original not in self._iconos:
+            # Conserva la silueta y la transparencia del arma con el color del HUD.
+            silueta = pygame.mask.from_surface(original).to_surface(
+                setcolor=(*AMBAR, 255), unsetcolor=(0, 0, 0, 0))
+            limites = silueta.get_bounding_rect()
+            if limites.width and limites.height:
+                silueta = silueta.subsurface(limites).copy()
+                escala = min(156 / limites.width, 38 / limites.height)
+                silueta = pygame.transform.scale(
+                    silueta, (max(1, round(limites.width * escala)),
+                              max(1, round(limites.height * escala))))
+            self._iconos[original] = silueta
+        return self._iconos[original]
 
     def dibujar(self, ventana, jugador):
-        ancho, alto = ventana.get_size()
-        self._panel(ventana, pygame.Rect(16, 16, 304, 148))
-        self._texto(ventana, "HOPE // SOPORTE TÁCTICO", (32, 24), CIAN, self.retro)
-        self._texto(ventana, "JHAN · OPERADOR", (32, 54), APAGADO, self.pequena)
-        color_vida = ROJO if jugador.vida <= jugador.vida_maxima * 0.25 else VERDE
-        self._medidor(ventana, "VIDA", jugador.vida, jugador.vida_maxima,
-                      32, 78, color_vida)
-        self._medidor(ventana, "BLINDAJE", jugador.blindaje, jugador.blindaje_maximo,
-                      32, 119, CIAN)
+        panel = self.marco.copy()
+        hp = self._porcentaje(jugador.vida, jugador.vida_maxima)
+        ap = self._porcentaje(jugador.blindaje, jugador.blindaje_maximo)
+        self._texto(panel, f"HP {hp}%", self.fuente, pygame.Rect(107, 14, 134, 44))
+        self._texto(panel, f"AP {ap}%", self.fuente, pygame.Rect(257, 14, 128, 44))
 
-        self._inventario(ventana, jugador, alto)
-        self._arma(ventana, jugador, ancho, alto)
-
-    def _inventario(self, ventana, jugador, alto):
-        self._texto(ventana, "EQUIPO", (16, alto - 104), APAGADO, self.pequena)
-        for indice, arma in enumerate(jugador.inventario):
-            rect = pygame.Rect(16 + indice * 66, alto - 76, 58, 60)
-            activa = arma is not None and arma is jugador.arma_equipada
-            color = CIAN if activa else BORDE
-            self._panel(ventana, rect, color)
-            pygame.draw.rect(ventana, color, rect, width=2 if activa else 1)
-            self._texto(ventana, str(indice + 1), (rect.x + 6, rect.y + 2),
-                        CIAN if activa else APAGADO, self.pequena)
-            if arma is not None and getattr(arma, "icono", None) is not None:
-                icono = pygame.transform.scale(arma.icono, (40, 20))
-                ventana.blit(icono, (rect.x + 9, rect.y + 29))
-            else:
-                pygame.draw.line(ventana, BORDE, (rect.x + 23, rect.y + 40),
-                                 (rect.x + 35, rect.y + 40), 2)
-
-    def _arma(self, ventana, jugador, ancho, alto):
-        rect = pygame.Rect(ancho - 322, alto - 140, 306, 124)
-        self._panel(ventana, rect)
-        x, y = rect.x + 16, rect.y + 10
         arma = jugador.arma_equipada
-        self._texto(ventana, "SISTEMA DE ARMAS", (x, y), APAGADO, self.pequena)
-        if arma is None:
-            self._texto(ventana, "SIN ARMA", (x, y + 27), TEXTO, self.retro)
-            self._texto(ventana, "E · Recoger un arma cercana", (x, y + 69), APAGADO)
-            return
+        nombre = arma.stats.nombre.upper() if arma else "SIN ARMA"
+        municion = f"{arma.balas_en_cargador:02d} / {arma.municion_total:02d}" if arma else "-- / --"
+        self._texto(panel, nombre, self.fuente_arma, pygame.Rect(608, 7, 146, 27))
+        self._texto(panel, municion, self.fuente_arma, pygame.Rect(608, 36, 146, 28))
+        if arma:
+            original = getattr(arma, "icono", None)
+            if original is not None:
+                icono = self._icono(original)
+                panel.blit(icono, icono.get_rect(center=(508, 31)))
+            if arma.iniciando_recarga > 0:
+                self._texto(panel, "RECARGANDO", self.fuente_estado,
+                            pygame.Rect(425, 50, 166, 18))
 
-        self._texto(ventana, arma.stats.nombre.upper(), (x, y + 25), CIAN, self.retro)
-        icono = getattr(arma, "icono", None)
-        if icono is not None:
-            ventana.blit(pygame.transform.scale(icono, (64, 32)), (x + 196, y + 26))
-
-        recargando = arma.iniciando_recarga > 0
-        color = AMBAR if recargando else (ROJO if arma.balas_en_cargador == 0 else TEXTO)
-        self._texto(ventana, f"{arma.balas_en_cargador:02d}", (x, y + 55), color, self.numero)
-        self._texto(ventana, f"/ {arma.municion_total:03d}", (x + 56, y + 68), APAGADO)
-        if recargando:
-            estado = "RECARGANDO"
-        elif arma.balas_en_cargador == 0:
-            estado = "SIN MUNICIÓN" if arma.municion_total <= 0 else "R · RECARGAR"
-        else:
-            estado = "R · RECARGAR"
-        self._texto(ventana, estado, (x + 142, y + 72), color, self.pequena)
+        ancho = min(768, max(1, ventana.get_width() - 32))
+        if ancho != 768:
+            panel = pygame.transform.scale(panel, (ancho, max(1, round(72 * ancho / 768))))
+        ventana.blit(panel, ((ventana.get_width() - ancho) // 2, 12))

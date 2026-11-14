@@ -16,6 +16,8 @@ class Menu:
         assets = Path(__file__).resolve().parent / "assets" / "ui"
         self.fondo = pygame.transform.scale(pygame.image.load(str(assets / "menu_background.png")).convert(), (ancho, alto))
         self.boton = pygame.image.load(str(assets / "menu_button.png")).convert_alpha()
+        self.boton_seleccionado = self.boton.copy()
+        self.boton_seleccionado.fill((48, 48, 48), special_flags=pygame.BLEND_RGB_ADD)
         self.ancho = ancho
         self.alto = alto
         self.titulo = titulo
@@ -78,9 +80,7 @@ class Menu:
                 superficie.blit(self.fuente_ayuda.render(accion, True, (225, 230, 225)), (500, 190 + i * 32))
         for i, (etiqueta, _) in enumerate(self.opciones):
             rect = self.botones[i]
-            superficie.blit(self.boton, rect)
             activo = i == self.indice_seleccionado
-            if activo:
-                pygame.draw.rect(superficie, (245, 185, 88), rect.inflate(-4, -4), 1)
-            texto = self.fuente_opciones.render(etiqueta, True, (255, 211, 130) if activo else (225, 230, 220))
+            superficie.blit(self.boton_seleccionado if activo else self.boton, rect)
+            texto = self.fuente_opciones.render(etiqueta, True, (255, 255, 240) if activo else (225, 230, 220))
             superficie.blit(texto, texto.get_rect(center=(rect.centerx + 10, rect.centery + 2)))

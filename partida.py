@@ -102,6 +102,6 @@ class Partida:
         ventana.blit(self.jugador.image, (self.jugador.rect.x - camara_x, self.jugador.rect.y))
         self.hud.dibujar(ventana, self.jugador)
         ayuda = self.fuente_hud.render("Esc · Pausa", True, (230, 230, 240))
-        ventana.blit(ayuda, (ANCHO_PANTALLA - ayuda.get_width() - 20, 20))
+        ventana.blit(ayuda, (ANCHO_PANTALLA - ayuda.get_width() - 20, 92))
 
 
