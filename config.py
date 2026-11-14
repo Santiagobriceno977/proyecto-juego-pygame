@@ -8,6 +8,10 @@ ALTO_PANTALLA = 600
 ANCHO_MUNDO = 3200
 ALTO_MUNDO = 600
 
+# Cambia esta altura para ajustar el suelo y las apariciones del nivel.
+ALTO_SUELO = 128
+Y_SUELO = ALTO_MUNDO - ALTO_SUELO
+
 # FPS objetivo (útil para hacer la física estable con dt)
 FPS = 60
 

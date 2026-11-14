@@ -6,7 +6,7 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
 import pygame
 
-from config import ANCHO_MUNDO
+from config import ANCHO_MUNDO, Y_SUELO
 from entities.enemies.spawn_manager import SpawnManager, ZonaEnemigos
 from entities.player import Player
 from levels.nivel_prueba import ZONAS_ENEMIGOS
@@ -90,7 +90,7 @@ class EnemySpawnTests(unittest.TestCase):
         for enemy in self.enemies:
             self.assertGreaterEqual(enemy.rect.left, 0)
             self.assertLessEqual(enemy.rect.right, ANCHO_MUNDO)
-            self.assertEqual(enemy.rect.bottom, 536)
+            self.assertEqual(enemy.rect.bottom, Y_SUELO)
 
 
 if __name__ == "__main__":
