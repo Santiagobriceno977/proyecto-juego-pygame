@@ -12,6 +12,7 @@ from entities.drop import Drop
 from entities.enemies.enemy import Enemy
 from entities.weapons.base import Bullet
 from main import Juego
+from config import Y_SUELO
 
 
 class GameFlowTests(unittest.TestCase):
@@ -51,7 +52,7 @@ class GameFlowTests(unittest.TestCase):
     def test_pause_freezes_world_and_resume_preserves_attempt(self):
         attempt = self.play()
         attempt.jugador.rect.centerx = 1000
-        attempt.grupo_enemigos.add(Enemy(800, 488))
+        attempt.grupo_enemigos.add(Enemy(800, Y_SUELO - 48))
         bullet = Bullet(700, 400, 1, 10, 25, (255, 255, 0))
         attempt.grupo_balas.add(bullet)
         before = (attempt.jugador.rect.copy(), bullet.rect.copy(),
@@ -135,11 +136,11 @@ class GameFlowTests(unittest.TestCase):
 
     def test_fatal_contact_opens_game_over_before_health_drop(self):
         attempt = self.play()
-        attempt.jugador.rect.topleft = (200, 488)
+        attempt.jugador.rect.topleft = (200, Y_SUELO - 48)
         attempt.jugador.vida = 5
         attempt.jugador.blindaje = 0
-        attempt.grupo_enemigos.add(Enemy(200, 488))
-        drop = Drop(200, 488)
+        attempt.grupo_enemigos.add(Enemy(200, Y_SUELO - 48))
+        drop = Drop(200, Y_SUELO - 48)
         drop.tipo, drop.valor = "vida", 25
         attempt.grupo_drops.add(drop)
         self.game.actualizar()
@@ -162,15 +163,15 @@ class GameFlowTests(unittest.TestCase):
         old.jugador.inventario[0] = weapon
         old.jugador.arma_equipada = weapon
         old.grupo_balas.add(Bullet(700, 400, 1, 10, 25, (255, 255, 0)))
-        old.grupo_enemigos.add(Enemy(800, 488))
-        old.grupo_drops.add(Drop(900, 488))
+        old.grupo_enemigos.add(Enemy(800, Y_SUELO - 48))
+        old.grupo_drops.add(Drop(900, Y_SUELO - 48))
         self.game.actualizar()
         self.key(pygame.K_RETURN)
         new = self.game.partida
         self.assertEqual(self.game.estado, "JUGANDO")
         self.assertIsNot(new, old)
         self.assertEqual((new.jugador.vida, new.jugador.blindaje), (100, 50))
-        self.assertEqual(new.jugador.rect.topleft, (50, 480))
+        self.assertEqual(new.jugador.rect.bottomleft, (50, new.suelo.rect.top))
         self.assertEqual(new.jugador.inventario, [None, None, None])
         self.assertIsNone(new.jugador.arma_equipada)
         self.assertEqual(len(new.grupo_armas), 3)

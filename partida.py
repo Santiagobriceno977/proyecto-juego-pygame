@@ -1,5 +1,5 @@
 import pygame
-from config import ANCHO_PANTALLA, ALTO_PANTALLA, ANCHO_MUNDO
+from config import ANCHO_PANTALLA, ALTO_PANTALLA, ANCHO_MUNDO, ALTO_SUELO, Y_SUELO
 from entities.game_platform import Platform
 from entities.player import Player
 from entities.weapons.pistol import Pistol
@@ -23,13 +23,21 @@ class Partida:
         self.grupo_balas = pygame.sprite.Group()
         self.grupo_drops = pygame.sprite.Group()
         self.grupo_enemigos = pygame.sprite.Group()
-        cargar_nivel_prueba(self.grupo_plataformas, self.grupo_obstaculos)
-        self.grupo_plataformas.add(
-            Platform(0, 536, ANCHO_MUNDO, 64, ruta_imagen="assets/items/suelo_tile.png")
+        self.suelo = Platform(
+            0, Y_SUELO, ANCHO_MUNDO, ALTO_SUELO,
+            ruta_imagen="assets/items/suelo_tile.png",
         )
-        self.jugador = Player(50, 480, ANCHO_PANTALLA, ALTO_PANTALLA)
-        self.grupo_armas.add(Pistol(150, 480), Shotgun(200, 480), Metralleta(100, 480))
-        self.spawn_manager = SpawnManager(ZONAS_ENEMIGOS)
+        cargar_nivel_prueba(
+            self.grupo_plataformas, self.grupo_obstaculos, self.suelo.rect.top)
+        self.grupo_plataformas.add(self.suelo)
+        self.jugador = Player(50, 0, ANCHO_PANTALLA, ALTO_PANTALLA)
+        self.jugador.rect.bottom = self.suelo.rect.top
+        self.jugador.en_suelo = True
+        for tipo, x in ((Pistol, 150), (Shotgun, 200), (Metralleta, 100)):
+            arma = tipo(x, 0)
+            arma.rect.bottom = self.suelo.rect.top
+            self.grupo_armas.add(arma)
+        self.spawn_manager = SpawnManager(ZONAS_ENEMIGOS, self.suelo.rect.top)
         self.instante_pausa = None
         self.fuente_hud = cargar_fuente(28)
         self.hud = HUD()
