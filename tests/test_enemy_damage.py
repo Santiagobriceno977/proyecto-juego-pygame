@@ -26,11 +26,16 @@ class EnemyDamageTests(unittest.TestCase):
         self.addCleanup(self.clock.stop)
 
     def collide(self):
+        # Cada llamada representa un nuevo zarpazo activo, no contacto pasivo.
+        for enemy in self.enemies:
+            enemy.fase_ataque = "GOLPEAR"
+            enemy.golpe_consumido = False
+            enemy.mirando_derecha = enemy.rect.centerx < self.player.rect.centerx
         gestionar_colisiones_enemigos(
             self.bullets, self.enemies, self.player, self.drops
         )
 
-    def test_contact_damages_shield_and_pushes_player(self):
+    def test_swipe_damages_shield_and_pushes_player(self):
         self.collide()
         self.assertEqual((self.player.blindaje, self.player.vida), (40, 100))
         self.assertEqual(self.player.rect.x, 88)
@@ -40,7 +45,7 @@ class EnemyDamageTests(unittest.TestCase):
         self.collide()
         self.assertEqual((self.player.blindaje, self.player.vida), (0, 95))
 
-    def test_contact_without_shield_reduces_health(self):
+    def test_swipe_without_shield_reduces_health(self):
         self.player.blindaje = 0
         self.collide()
         self.assertEqual(self.player.vida, 90)
@@ -63,7 +68,7 @@ class EnemyDamageTests(unittest.TestCase):
         self.assertEqual(self.player.blindaje, 40)
         self.assertEqual(self.player.rect.x, 88)
 
-    def test_no_contact_does_not_damage_player(self):
+    def test_out_of_range_swipe_does_not_damage_player(self):
         self.enemy.rect.x = 300
         self.collide()
         self.assertEqual((self.player.blindaje, self.player.vida), (50, 100))
@@ -107,3 +112,4 @@ class EnemyDamageTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
