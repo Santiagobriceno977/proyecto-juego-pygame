@@ -2,6 +2,7 @@ import pygame
 from config import ANCHO_PANTALLA, ALTO_PANTALLA, FPS
 from menu import Menu
 from partida import Partida
+from levels.tiled_map import MAPA_01
 
 
 class Juego:
@@ -15,12 +16,13 @@ class Juego:
         self.activo = True
         self.estado = "MENU"
         self.partida = None
+        self.ruta_nivel = None
         self.menus = {
             "MENU": Menu(ANCHO_PANTALLA, ALTO_PANTALLA),
             "CONTROLES": Menu(ANCHO_PANTALLA, ALTO_PANTALLA, "CONTROLES", (("Volver", "MENU"),), controles=True),
             "NIVELES": Menu(
                 ANCHO_PANTALLA, ALTO_PANTALLA, "SELECCIÓN DE NIVELES",
-                (("Nivel de prueba", "INICIAR"), ("Volver", "MENU")),
+                (("Nivel de prueba", "INICIAR"), ("Nivel 01 · Tierra", "INICIAR_TILED"), ("Volver", "MENU")),
                 "Explora el mapa y encuentra a los enemigos.",
             ),
             "PAUSA": Menu(
@@ -74,7 +76,7 @@ class Juego:
 
     def iniciar_partida(self):
         # Una instancia nueva restablece jugador, inventario, mapa y encuentros.
-        self.partida = Partida()
+        self.partida = Partida(self.ruta_nivel)
         self._restaurar_audio(descartar=True)
         self.cambiar_estado("JUGANDO")
 
@@ -122,7 +124,12 @@ class Juego:
             self.cambiar_estado("NIVELES")
         elif accion == "CONTROLES":
             self.cambiar_estado("CONTROLES")
+        elif accion == "INICIAR_TILED":
+            self.ruta_nivel = MAPA_01
+            self.iniciar_partida()
         elif accion == "INICIAR":
+            if self.estado == "NIVELES":
+                self.ruta_nivel = None
             self.iniciar_partida()
         elif accion == "REANUDAR":
             self.reanudar()
@@ -167,4 +174,5 @@ class Juego:
 
 if __name__ == "__main__":
     Juego().ejecutar()
+
 
