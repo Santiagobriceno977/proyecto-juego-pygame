@@ -34,6 +34,8 @@ class Enemy(pygame.sprite.Sprite):
         # IA y Comportamiento por Estados
         self.estado = "PATRULLAR"
         self.rango_vision = 300
+        # Un disparo recibido mantiene la persecución hasta morir o reiniciar.
+        self.alertado_por_disparo = False
 
         # Variables de patrullaje
         self.punto_inicial_x = x
@@ -48,7 +50,7 @@ class Enemy(pygame.sprite.Sprite):
         distancia_total = abs(distancia_x)
 
         # Máquina de estados
-        if distancia_total <= self.rango_vision and distancia_y < 120:
+        if self.alertado_por_disparo or (distancia_total <= self.rango_vision and distancia_y < 120):
             self.estado = "PERSEGUIR"
         else:
             self.estado = "PATRULLAR"
@@ -107,7 +109,12 @@ class Enemy(pygame.sprite.Sprite):
 
     def recibir_daño(self, cantidad, grupo_drops, bala_x=None):
         """Resta vida al enemigo y le aplica un empuje en dirección opuesta al impacto."""
+        if cantidad <= 0 or self.vida <= 0:
+            return
         self.vida -= cantidad
+        if bala_x is not None and self.vida > 0:
+            self.alertado_por_disparo = True
+            self.estado = "PERSEGUIR"
 
         if bala_x is not None:
             if self.rect.centerx < bala_x:
