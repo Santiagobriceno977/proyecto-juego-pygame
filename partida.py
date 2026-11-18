@@ -94,7 +94,8 @@ class Partida:
         self.spawn_manager.actualizar(self.jugador, self.grupo_enemigos)
         actualizar_enemigos(self.grupo_enemigos, self.grupo_plataformas, self.jugador)
         gestionar_colisiones_enemigos(
-            self.grupo_balas, self.grupo_enemigos, self.jugador, self.grupo_drops
+            self.grupo_balas, self.grupo_enemigos, self.jugador, self.grupo_drops,
+            self.grupo_plataformas
         )
         # Un drop de vida no puede revivir al jugador tras un golpe mortal.
         if self.jugador.vida <= 0:
@@ -112,10 +113,12 @@ class Partida:
             self.mapa.dibujar(ventana, camara_x, self.camara_y)
         for grupo in (
             (() if self.mapa else self.grupo_plataformas), self.grupo_obstaculos, self.grupo_armas,
-            self.grupo_balas, self.grupo_enemigos, self.grupo_drops,
+            self.grupo_balas, self.grupo_drops,
         ):
             for entidad in grupo:
                 ventana.blit(entidad.image, (entidad.rect.x - camara_x, entidad.rect.y - self.camara_y))
+        for enemigo in self.grupo_enemigos:
+            enemigo.dibujar(ventana, camara_x, self.camara_y)
         for arma in self.grupo_armas:
             if self.jugador.rect.colliderect(arma.rect.inflate(40, 40)):
                 texto = self.fuente_hud.render("[E]", True, (255, 255, 0))
@@ -124,6 +127,7 @@ class Partida:
         self.hud.dibujar(ventana, self.jugador)
         ayuda = self.fuente_hud.render("Esc · Pausa", True, (230, 230, 240))
         ventana.blit(ayuda, (ANCHO_PANTALLA - ayuda.get_width() - 20, 92))
+
 
 
 

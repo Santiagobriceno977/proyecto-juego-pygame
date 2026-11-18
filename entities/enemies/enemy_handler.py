@@ -7,7 +7,7 @@ def actualizar_enemigos(grupo_enemigos, grupo_plataformas, jugador):
         enemigo.update(grupo_plataformas, jugador)
 
 
-def gestionar_colisiones_enemigos(grupo_balas, grupo_enemigos, jugador, grupo_drops):
+def gestionar_colisiones_enemigos(grupo_balas, grupo_enemigos, jugador, grupo_drops, plataformas=()):
     # 1. Colisiones de balas con enemigos
     colisiones_balas = pygame.sprite.groupcollide(grupo_balas, grupo_enemigos, True, False)
 
@@ -16,12 +16,17 @@ def gestionar_colisiones_enemigos(grupo_balas, grupo_enemigos, jugador, grupo_dr
             daño_bala = getattr(bala, "daño", 50)
             enemigo.recibir_daño(daño_bala, grupo_drops, bala_x=bala.rect.centerx)
 
-    # 2. Colisiones de enemigos con el jugador (Daño y empuje)
-    colisiones_jugador = pygame.sprite.spritecollide(jugador, grupo_enemigos, False)
-    for enemigo in colisiones_jugador:
-        if jugador.recibir_daño(enemigo.daño_contacto):
-
-            # Aplicar empuje físico al jugador al tocar al enemigo
-            empuje = 12 if enemigo.rect.centerx < jugador.rect.centerx else -12
+    # 2. Solo el zarpazo activo causa daño; el contacto por sí solo no golpea.
+    for enemigo in grupo_enemigos:
+        if enemigo.intentar_golpe(jugador, plataformas):
+            empuje = 12 if enemigo.mirando_derecha else -12
             jugador.rect.x += empuje
-            jugador.rect.x = max(0, min(jugador.rect.x, ANCHO_MUNDO - jugador.rect.width))
+            ancho = getattr(jugador, "ancho_mundo", ANCHO_MUNDO)
+            jugador.rect.x = max(0, min(jugador.rect.x, ancho - jugador.rect.width))
+            # El empuje tampoco puede introducir al jugador en una pared.
+            for plataforma in plataformas:
+                if jugador.rect.colliderect(plataforma.rect):
+                    if empuje > 0:
+                        jugador.rect.right = plataforma.rect.left
+                    else:
+                        jugador.rect.left = plataforma.rect.right

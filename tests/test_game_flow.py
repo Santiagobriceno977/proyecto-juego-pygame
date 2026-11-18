@@ -134,12 +134,15 @@ class GameFlowTests(unittest.TestCase):
         self.game.procesar_evento(pygame.event.Event(pygame.WINDOWFOCUSLOST))
         self.assertEqual(self.game.estado, "PAUSA")
 
-    def test_fatal_contact_opens_game_over_before_health_drop(self):
+    def test_fatal_swipe_opens_game_over_before_health_drop(self):
         attempt = self.play()
         attempt.jugador.rect.topleft = (200, Y_SUELO - 48)
         attempt.jugador.vida = 5
         attempt.jugador.blindaje = 0
-        attempt.grupo_enemigos.add(Enemy(200, Y_SUELO - 48))
+        enemy = Enemy(200, Y_SUELO - 48)
+        enemy.fase_ataque = "GOLPEAR"
+        enemy.tiempo_ataque = enemy.GOLPE
+        attempt.grupo_enemigos.add(enemy)
         drop = Drop(200, Y_SUELO - 48)
         drop.tipo, drop.valor = "vida", 25
         attempt.grupo_drops.add(drop)
@@ -247,3 +250,4 @@ class GameFlowTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

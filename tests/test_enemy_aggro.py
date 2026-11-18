@@ -42,6 +42,8 @@ class EnemyAggroTests(unittest.TestCase):
 
     def test_alert_tracks_player_on_either_side_even_at_different_height(self):
         self.hit()
+        for _ in range(self.enemy.TAMBALEO):
+            self.enemy.update(self.platforms, self.player)
         for x in (10, 2000):
             with self.subTest(player_x=x):
                 self.player.rect.topleft = (x, -400)
@@ -85,3 +87,4 @@ class EnemyAggroTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
