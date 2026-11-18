@@ -29,7 +29,9 @@ class SpawnManager:
                 for x, y in zona.posiciones:
                     enemigo = Enemy(x, 0 if y is None else y)
                     if y is None:
-                        enemigo.rect.bottom = self.suelo_y
+                        enemigo.rect.bottom = (self.suelo_y(enemigo.rect)
+                                               if callable(self.suelo_y) else self.suelo_y)
                         enemigo.en_suelo = True
                     grupo_enemigos.add(enemigo)
                 self.zonas_activadas.add(indice)
+

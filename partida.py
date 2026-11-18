@@ -9,6 +9,7 @@ from entities.enemies.enemy_handler import actualizar_enemigos, gestionar_colisi
 from entities.enemies.spawn_manager import SpawnManager
 from levels.nivel_prueba import cargar_nivel_prueba, ZONAS_ENEMIGOS
 from hud import HUD
+from levels.tiled_map import MapaTiled
 from input_handler import gestionar_eventos_teclado, gestionar_disparo_continuo
 from fuentes import cargar_fuente
 
@@ -16,28 +17,38 @@ from fuentes import cargar_fuente
 class Partida:
     """Estado completo de un intento del nivel de prueba."""
 
-    def __init__(self):
+    def __init__(self, ruta_mapa=None):
         self.grupo_plataformas = pygame.sprite.Group()
         self.grupo_obstaculos = pygame.sprite.Group()
         self.grupo_armas = pygame.sprite.Group()
         self.grupo_balas = pygame.sprite.Group()
         self.grupo_drops = pygame.sprite.Group()
         self.grupo_enemigos = pygame.sprite.Group()
-        self.suelo = Platform(
-            0, Y_SUELO, ANCHO_MUNDO, ALTO_SUELO,
-            ruta_imagen="assets/items/suelo_tile.png",
-        )
-        cargar_nivel_prueba(
-            self.grupo_plataformas, self.grupo_obstaculos, self.suelo.rect.top)
-        self.grupo_plataformas.add(self.suelo)
+        self.mapa = MapaTiled(ruta_mapa) if ruta_mapa else None
+        self.ancho_mundo = self.mapa.ancho if self.mapa else ANCHO_MUNDO
+        self.camara_y = max(0, self.mapa.alto - ALTO_PANTALLA) if self.mapa else 0
+        if self.mapa:
+            self.grupo_plataformas.add(self.mapa.colisiones)
+        else:
+            self.suelo = Platform(
+                0, Y_SUELO, ANCHO_MUNDO, ALTO_SUELO,
+                ruta_imagen="assets/items/suelo_tile.png",
+            )
+            cargar_nivel_prueba(
+                self.grupo_plataformas, self.grupo_obstaculos, self.suelo.rect.top)
+            self.grupo_plataformas.add(self.suelo)
         self.jugador = Player(50, 0, ANCHO_PANTALLA, ALTO_PANTALLA)
-        self.jugador.rect.bottom = self.suelo.rect.top
+        self.jugador.ancho_mundo = self.ancho_mundo
+        if self.mapa:
+            self.jugador.alto_pantalla = self.mapa.alto
+        superficie = self.mapa.superficie_en if self.mapa else lambda rect: self.suelo.rect.top
+        self.jugador.rect.bottom = superficie(self.jugador.rect)
         self.jugador.en_suelo = True
         for tipo, x in ((Pistol, 150), (Shotgun, 200), (Metralleta, 100)):
             arma = tipo(x, 0)
-            arma.rect.bottom = self.suelo.rect.top
+            arma.rect.bottom = superficie(arma.rect)
             self.grupo_armas.add(arma)
-        self.spawn_manager = SpawnManager(ZONAS_ENEMIGOS, self.suelo.rect.top)
+        self.spawn_manager = SpawnManager(ZONAS_ENEMIGOS, superficie)
         self.instante_pausa = None
         self.fuente_hud = cargar_fuente(28)
         self.hud = HUD()
@@ -94,22 +105,25 @@ class Partida:
     def dibujar(self, ventana):
         camara_x = max(0, min(
             self.jugador.rect.centerx - ANCHO_PANTALLA // 3,
-            ANCHO_MUNDO - ANCHO_PANTALLA,
+            self.ancho_mundo - ANCHO_PANTALLA,
         ))
         ventana.blit(self.imagen_fondo, (0, 0))
+        if self.mapa:
+            self.mapa.dibujar(ventana, camara_x, self.camara_y)
         for grupo in (
-            self.grupo_plataformas, self.grupo_obstaculos, self.grupo_armas,
+            (() if self.mapa else self.grupo_plataformas), self.grupo_obstaculos, self.grupo_armas,
             self.grupo_balas, self.grupo_enemigos, self.grupo_drops,
         ):
             for entidad in grupo:
-                ventana.blit(entidad.image, (entidad.rect.x - camara_x, entidad.rect.y))
+                ventana.blit(entidad.image, (entidad.rect.x - camara_x, entidad.rect.y - self.camara_y))
         for arma in self.grupo_armas:
             if self.jugador.rect.colliderect(arma.rect.inflate(40, 40)):
                 texto = self.fuente_hud.render("[E]", True, (255, 255, 0))
-                ventana.blit(texto, (arma.rect.x - camara_x - 10, arma.rect.y - 25))
-        ventana.blit(self.jugador.image, (self.jugador.rect.x - camara_x, self.jugador.rect.y))
+                ventana.blit(texto, (arma.rect.x - camara_x - 10, arma.rect.y - 25 - self.camara_y))
+        ventana.blit(self.jugador.image, (self.jugador.rect.x - camara_x, self.jugador.rect.y - self.camara_y))
         self.hud.dibujar(ventana, self.jugador)
         ayuda = self.fuente_hud.render("Esc · Pausa", True, (230, 230, 240))
         ventana.blit(ayuda, (ANCHO_PANTALLA - ayuda.get_width() - 20, 92))
+
 
 

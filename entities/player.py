@@ -38,6 +38,7 @@ class Player(pygame.sprite.Sprite):
     self.rect.x = x
     self.rect.y = y
 
+    self.ancho_mundo = ANCHO_MUNDO
     self.ancho_pantalla = ancho_pantalla
     self.alto_pantalla = alto_pantalla
 
@@ -120,8 +121,8 @@ class Player(pygame.sprite.Sprite):
 
     if self.rect.left < 0:
       self.rect.left = 0
-    elif self.rect.right > ANCHO_MUNDO:
-      self.rect.right = ANCHO_MUNDO
+    elif self.rect.right > self.ancho_mundo:
+      self.rect.right = self.ancho_mundo
 
     if self.rect.top > self.alto_pantalla:
       self.rect.x = 100
@@ -148,3 +149,4 @@ class Player(pygame.sprite.Sprite):
       elif self.vel_y < 0:
         self.rect.top = plataforma.rect.bottom
         self.vel_y = 0
+
